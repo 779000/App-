@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#02070d">
+<title>GAME STATION 4.0 - Máquina de Vendas</title>
+<style>
+:root{
+  --bg:#02070d; --panel:#07111b; --line:#0b8ee8; --blue:#08a7ff;
+  --green:#45ff19; --text:#e9f2fa; --muted:#8a9aaa; --lcd:#a9c87b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#000b13;color:var(--text);font-family:Arial,sans-serif;min-height:100vh}
+.app{width:min(100%,430px);min-height:100vh;margin:auto;background:
+ radial-gradient(circle at 50% 20%,#09233a 0,#02070d 38%,#010409 100%);
+ position:relative;overflow:hidden}
+header{padding:13px 16px 8px;border-bottom:1px solid #0b3858}
+.brand{font-weight:900;font-style:italic;font-size:25px;letter-spacing:-1px}
+.brand span{color:#f22}.brand b{color:#e9edf2}
+.gear{float:right;font-size:27px;color:#8da0ae}
+.status{display:flex;gap:12px;align-items:center;color:#15aaff;font-size:12px;padding:8px 4px}
+.dot{width:10px;height:10px;background:#25e812;border-radius:50%;display:inline-block;box-shadow:0 0 10px #25e812}
+.device{margin-left:auto}
+main{padding:10px 14px 82px}
+.title{font-size:12px;text-align:center;border:1px solid #173a54;border-radius:14px;padding:6px;margin:0 auto 7px;width:75%;color:#dce5ea;background:#07111a}
+.lcd{background:linear-gradient(#b9d68d,#91ae63);color:#10170a;border:3px solid #304b16;border-radius:9px;min-height:82px;padding:13px 8px;text-align:center;box-shadow:inset 0 0 18px #5f7741,0 0 0 2px #172a0e}
+.lcd .big{font-family:monospace;font-size:26px;font-weight:bold}
+.lcd .small{font-family:monospace;font-size:13px;margin-top:8px}
+.section-label{text-align:center;margin:10px 0 5px;font-family:monospace;font-size:12px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:5px 8px}
+.key{height:61px;border-radius:16px;color:white;font-size:31px;font-weight:bold;background:linear-gradient(#182b3c,#030a11);border:1px solid #079fe9;box-shadow:inset 0 0 0 2px #0b1722,0 0 8px #003a5c;touch-action:manipulation}
+.key:active{transform:scale(.97);background:#0b2a40}
+.zero{grid-column:2}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:8px 8px}
+.action{height:72px;border-radius:13px;font-size:16px;font-weight:bold;border:2px solid #56616a}
+.correct{background:linear-gradient(#858585,#292929);color:#111}
+.confirm{background:linear-gradient(#18a900,#006500);color:#eaffea;border-color:#18ff13}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,430px);height:70px;background:#050b12;border-top:1px solid #16344a;display:grid;grid-template-columns:repeat(4,1fr);z-index:5}
+.nav{border:0;background:none;color:#788793;font-size:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.nav .ico{font-size:23px}.nav.active{color:#08a7ff}.nav.green{color:#8dff21}
+.page{display:none}.page.active{display:block}
+.back{border:0;background:none;color:#08a7ff;font-size:28px}
+.pagehead{display:flex;align-items:center;gap:10px;color:#08a7ff;font-size:20px;font-weight:bold;margin-bottom:12px}
+.search{width:100%;background:#06101a;border:1px solid #19435e;border-radius:18px;padding:12px 17px;color:white;font-size:16px;margin-bottom:8px}
+.product{display:grid;grid-template-columns:52px 48px 1fr auto;gap:7px;align-items:center;padding:9px 2px;border-bottom:1px solid #183044}
+.code{border:1px solid #008de0;color:#0ba8ff;border-radius:7px;padding:7px;text-align:center;font-weight:bold}
+.emoji{font-size:27px;text-align:center}.pname{font-size:16px}.price{color:#42ed1b;font-weight:bold}
+.history{text-align:center;color:#7d8b95;padding:50px 15px}
+.settings{color:#aebbc5}.setting{padding:14px;border-bottom:1px solid #173044}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:20;padding:22px}
+.modal.show{display:flex}
+.card{width:min(100%,350px);background:#06121d;border:1px solid #087fc4;border-radius:16px;padding:22px;text-align:center;box-shadow:0 0 30px #002f4c}
+.card h2{margin:5px 0 12px}.card .buy{font-size:18px}.card .mprice{color:#6dff25;font-size:20px;margin:10px}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.modal button{padding:13px;border-radius:10px;border:1px solid #6a7780;font-weight:bold}
+.cancel{background:#31383d;color:white}.ok{background:#079900;color:white}
+.delivery .lcd{margin-bottom:18px}.can{font-size:90px;margin:10px}
+.speaker{color:#54f42d;font-size:13px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand"><span>GAME</span> <b>STATION 4.0</b><span class="gear">⚙</span></div>
+  <div class="status"><span>♢ BLUETOOTH</span><span class="dot"></span><span style="color:#55f42c">CONECTADO</span><span class="device">ARDUINO_01</span></div>
+</header>
+
+<main>
+  <section id="teclado" class="page active">
+    <div class="title">PRODUTO SELECIONADO</div>
+    <div class="lcd" id="display">
+      <div class="big">AGUARDANDO...</div>
+      <div class="small">DIGITE O CÓDIGO DO PRODUTO</div>
+    </div>
+    <div class="section-label">DIGITE O CÓDIGO</div>
+    <div class="keypad">
+      <button class="key" data-key="1">1</button><button class="key" data-key="2">2</button><button class="key" data-key="3">3</button>
+      <button class="key" data-key="4">4</button><button class="key" data-key="5">5</button><button class="key" data-key="6">6</button>
+      <button class="key" data-key="7">7</button><button class="key" data-key="8">8</button><button class="key" data-key="9">9</button>
+      <button class="key zero" data-key="0">0</button>
+    </div>
+    <div class="actions">
+      <button class="action correct" id="correct">✕<br>CORRIGIR</button>
+      <button class="action confirm" id="confirm">✓<br>CONFIRMAR</button>
+    </div>
+  </section>
+
+  <section id="produtos" class="page">
+    <div class="pagehead"><button class="back" onclick="go('teclado')">‹</button> PRODUTOS</div>
+    <input class="search" id="search" placeholder="Buscar produto...">
+    <div id="productList"></div>
+  </section>
+
+  <section id="compras" class="page">
+    <div class="pagehead"><button class="back" onclick="go('teclado')">‹</button> COMPRAS</div>
+    <div class="history" id="history">Nenhuma compra realizada ainda.</div>
+  </section>
+
+  <section id="config" class="page">
+    <div class="pagehead"><button class="back" onclick="go('teclado')">‹</button> CONFIGURAÇÕES</div>
+    <div class="settings">
+      <div class="setting">🔵 Bluetooth <b style="color:#4cff26">Conectado</b></div>
+      <div class="setting">📟 Dispositivo: ARDUINO_01</div>
+      <div class="setting">🔊 Som das teclas: Ativado</div>
+      <div class="setting">⚙ Modo demonstração: Ativado</div>
+    </div>
+  </section>
+
+  <section id="delivery" class="page delivery">
+    <div class="pagehead"><button class="back" onclick="go('teclado')">‹</button> MÁQUINA DE VENDAS</div>
+    <div class="lcd"><div class="big">RETIRE SEU<br>PRODUTO</div><div class="small">OBRIGADO E VOLTE SEMPRE!</div></div>
+    <div class="can" id="deliveryIcon">🥤</div>
+    <div class="speaker">🔊 Retire seu produto</div>
+  </section>
+</main>
+
+<nav class="bottom">
+  <button class="nav active" onclick="go('teclado')"><span class="ico">▦</span>TECLADO</button>
+  <button class="nav" onclick="go('produtos')"><span class="ico">▣</span>PRODUTOS</button>
+  <button class="nav" onclick="go('compras')"><span class="ico">🛒</span>COMPRAS</button>
+  <button class="nav" onclick="go('config')"><span class="ico">⚙</span>CONFIG.</button>
+</nav>
+
+<div class="modal" id="modal">
+  <div class="card">
+    <div style="font-size:38px">🛒</div>
+    <h2>CONFIRMAR COMPRA?</h2>
+    <div class="buy" id="modalProduct"></div>
+    <div class="mprice" id="modalPrice"></div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">CANCELAR</button>
+      <button class="ok" onclick="finishPurchase()">CONFIRMAR</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const products=[
+ {code:'01',name:'REFRIGERANTE',price:5.00,icon:'🥤'},
+ {code:'02',name:'ÁGUA MINERAL',price:3.00,icon:'🧴'},
+ {code:'03',name:'SUCO DE LARANJA',price:4.50,icon:'🧃'},
+ {code:'04',name:'CHOCOLATE',price:4.00,icon:'🍫'},
+ {code:'05',name:'BISCOITO',price:3.50,icon:'🍪'},
+ {code:'06',name:'SALGADINHO',price:4.00,icon:'🥨'},
+ {code:'07',name:'ENERGÉTICO',price:6.00,icon:'🥫'},
+ {code:'08',name:'CAFÉ',price:4.00,icon:'☕'},
+ {code:'09',name:'SANDUÍCHE',price:7.00,icon:'🥪'},
+ {code:'10',name:'CHICLETE',price:2.00,icon:'🍬'}
+];
+
+let code='';
+let selected=null;
+let purchases=[];
+
+function money(v){return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+
+function renderDisplay(){
+ const d=document.getElementById('display');
+ if(!code){d.innerHTML='<div class="big">AGUARDANDO...</div><div class="small">DIGITE O CÓDIGO DO PRODUTO</div>';return}
+ const p=products.find(x=>x.code===code);
+ if(p)d.innerHTML=`<div class="small">CÓDIGO: ${p.code}</div><div class="big" style="font-size:23px">${p.name}</div><div class="small">PREÇO: ${money(p.price)}</div>`;
+ else d.innerHTML=`<div class="big">${code}</div><div class="small">CÓDIGO NÃO ENCONTRADO</div>`;
+}
+
+function beep(){
+ try{
+   const C=window.AudioContext||window.webkitAudioContext;
+   if(!C)return;
+   const a=new C(),o=a.createOscillator(),g=a.createGain();
+   o.frequency.value=650;g.gain.value=.035;o.connect(g);g.connect(a.destination);
+   o.start();o.stop(a.currentTime+.035);
+ }catch(e){}
+}
+
+document.querySelectorAll('.key').forEach(b=>b.addEventListener('click',()=>{
+ if(code.length<2){code+=b.dataset.key;beep();renderDisplay();}
+}));
+
+document.getElementById('correct').onclick=()=>{
+ // Conforme solicitado: CORRIGIR limpa o visor inteiro.
+ code=''; selected=null; renderDisplay(); beep();
+};
+
+document.getElementById('confirm').onclick=()=>{
+ const p=products.find(x=>x.code===code);
+ if(!p){alert('Digite um código válido de 01 a 10.');return;}
+ selected=p;
+ document.getElementById('modalProduct').textContent=p.name;
+ document.getElementById('modalPrice').textContent=money(p.price);
+ document.getElementById('modal').classList.add('show');
+};
+
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+
+function finishPurchase(){
+ if(!selected)return;
+ purchases.push({...selected,date:new Date()});
+ document.getElementById('modal').classList.remove('show');
+ document.getElementById('deliveryIcon').textContent=selected.icon;
+ document.getElementById('history').innerHTML=purchases.slice().reverse().map(p=>
+   `<div style="padding:12px;border-bottom:1px solid #173044;text-align:left"><b>${p.code} - ${p.name}</b><br><span style="color:#55f42c">${money(p.price)}</span></div>`
+ ).join('');
+ code=''; renderDisplay(); go('delivery');
+ setTimeout(()=>{ code=''; },100);
+}
+
+function go(id){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
+ const map={teclado:0,produtos:1,compras:2,config:3};
+ if(map[id]!=null)document.querySelectorAll('.nav')[map[id]].classList.add('active');
+}
+
+function renderProducts(list=products){
+ document.getElementById('productList').innerHTML=list.map(p=>
+ `<div class="product" onclick="selectProduct('${p.code}')"><div class="code">${p.code}</div><div class="emoji">${p.icon}</div><div class="pname">${p.name}</div><div class="price">${money(p.price)}</div></div>`
+ ).join('');
+}
+function selectProduct(c){code=c;renderDisplay();go('teclado');}
+document.getElementById('search').addEventListener('input',e=>{
+ const q=e.target.value.toLowerCase();
+ renderProducts(products.filter(p=>p.name.toLowerCase().includes(q)||p.code.includes(q)));
+});
+renderProducts();
+renderDisplay();
+</script>
+</div>
+</body>
+</html>
